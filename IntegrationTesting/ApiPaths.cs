@@ -1,6 +1,6 @@
 namespace vega.Tests.IntegrationTesting.Helpers
 {
-    public static class Literals
+    public static class ApiPaths
     {
         public const string AuthLoginApi = "api/auth/login";
         public const string PlanningApps = "api/planningapps";

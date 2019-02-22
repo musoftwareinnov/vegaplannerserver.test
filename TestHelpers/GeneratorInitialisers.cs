@@ -24,6 +24,7 @@ namespace vegaplannerserver.test.TestHelpers
 
             var  GNS = new StateInitialiserState();
             GNS.Name = "State:" + stateNo;
+            GNS.OrderId = stateNo;
             return GNS;
         }
     }   

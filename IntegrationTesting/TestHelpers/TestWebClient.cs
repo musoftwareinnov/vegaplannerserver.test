@@ -24,7 +24,7 @@ namespace vega.test.IntegrationTesting.TestHelpers
 
         public void Login() {
             var postParams = new Dictionary<string, string> { { "userName", "adminuser@gmail.com" }, { "password", "admpassword" } };
-            Token = MakeRequest<AuthToken>("POST", _client, Literals.AuthLoginApi, postParams);
+            Token = MakeRequest<AuthToken>("POST", _client, ApiPaths.AuthLoginApi, postParams);
             //Authorise all calls to the server
             _client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", Token.authToken); 
@@ -36,7 +36,15 @@ namespace vega.test.IntegrationTesting.TestHelpers
         }
 
         public QueryResultResource<PlanningAppSummaryResource> GetPlanningApps() {    
-            var res = MakeRequest<QueryResultResource<PlanningAppSummaryResource>>("GET", _client, Literals.PlanningApps, new Dictionary<string, string>());
+            var res = MakeRequest<QueryResultResource<PlanningAppSummaryResource>>("GET", _client, ApiPaths.PlanningApps, new Dictionary<string, string>());
+            return res;
+        }
+        public PlanningAppResource CreatePlanningApp() {  
+
+            var body = new Dictionary<string, string>();
+            body.Add("CustomerId", "1");
+            body.Add("ProjectGeneratorId", "1");
+            var res = MakeRequest<PlanningAppResource>("POST", _client, ApiPaths.PlanningApps, body);
             return res;
         }
 
