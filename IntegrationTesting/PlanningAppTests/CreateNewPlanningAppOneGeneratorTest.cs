@@ -54,9 +54,17 @@ namespace vega.test.IntegrationTesting.PlanningAppTests
             testWebClient.Login();
 
             var results = testWebClient.GetPlanningApps();
+            Assert.True(results.Items.Count() == 0); 
+
             var planningApp = testWebClient.CreatePlanningApp();
-            
-            //Assert.True(results.Items.Count() == 0);      
+            Assert.Equal(planningApp.ProjectGeneratorName, "Test Project Generator");           
+            Assert.True(planningApp.PlanningAppStates.Count() == 5); 
+
+            //Check Ordering
+
+            var stateList = planningApp.PlanningAppStates.ToList();
+            Assert.True(stateList[0].StateName == "State:0");     
+            Assert.True(stateList[4].StateName == "State:6");         
         } 
     }
 
@@ -79,7 +87,7 @@ namespace vega.test.IntegrationTesting.PlanningAppTests
 
                 //service.InsertGenerator
                 var testData = new SetupDefaultTestData(db);
-                testData.CreateProjectWithOneGenerator();
+                testData.CreateProjectWithOneGeneratorFiveStates();
                 db.SaveChanges(); 
             }
         }
