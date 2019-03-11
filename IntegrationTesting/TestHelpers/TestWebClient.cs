@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using vega.Controllers.Resources;
 using vega.Core.Models;
 using vega.Tests.IntegrationTesting.Helpers;
+using vegaplannerserver.test.IntegrationTesting.TestHelpers;
 
 namespace vega.test.IntegrationTesting.TestHelpers
 {
@@ -14,6 +17,8 @@ namespace vega.test.IntegrationTesting.TestHelpers
     {
         HttpClient _client;
         AuthToken Token;
+
+        public readonly string ProjectGeneratorName = "Test Project Generator";
 
         public TestWebClient(HttpClient httpClient) {
             _client = httpClient;
@@ -24,7 +29,7 @@ namespace vega.test.IntegrationTesting.TestHelpers
 
         public void Login() {
             var postParams = new Dictionary<string, string> { { "userName", "adminuser@gmail.com" }, { "password", "admpassword" } };
-            Token = MakeRequest<AuthToken>("POST", _client, ApiPaths.AuthLoginApi, postParams);
+            Token = MakeRequest<AuthToken>("POST", _client, ApiPaths.AuthLoginApi, postParams).Result;
             //Authorise all calls to the server
             _client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", Token.authToken); 
@@ -35,21 +40,42 @@ namespace vega.test.IntegrationTesting.TestHelpers
             throw new NotImplementedException();
         }
 
-        public QueryResultResource<PlanningAppSummaryResource> GetPlanningApps() {    
-            var res = MakeRequest<QueryResultResource<PlanningAppSummaryResource>>("GET", _client, ApiPaths.PlanningApps, new Dictionary<string, string>());
+        public async Task<QueryResultResource<PlanningAppSummaryResource>> GetPlanningApps() {    
+            var res = await MakeRequest<QueryResultResource<PlanningAppSummaryResource>>("GET", _client, ApiPaths.PlanningApps, new Dictionary<string, string>());
             return res;
         }
-        public PlanningAppResource CreatePlanningApp() {  
+        public async Task<QueryResultResource<ProjectGeneratorResource>> GetProjectGenerator() {    
+            var res = await MakeRequest<QueryResultResource<ProjectGeneratorResource>>("GET", _client, ApiPaths.ProjectGenerators, new Dictionary<string, string>());
+            return res;
+        }
+        public async Task<PlanningAppResource> CreatePlanningApp(int pgId) {  
 
             var body = new Dictionary<string, string>();
             body.Add("CustomerId", "1");
-            body.Add("ProjectGeneratorId", "1");
-            var res = MakeRequest<PlanningAppResource>("POST", _client, ApiPaths.PlanningApps, body);
+            body.Add("ProjectGeneratorId", pgId.ToString());
+            var res = await MakeRequest<PlanningAppResource>("POST", _client, ApiPaths.PlanningApps, body);
             return res;
         }
 
+        public bool checkListOrdering(List<PlanningAppStateResource> stateList)
+        {
+            int genOrder = stateList.FirstOrDefault().GeneratorOrder;
+            int genNumber = 1, stateNo = 1;
+            foreach(var state in stateList) {
+                if(genOrder != state.GeneratorOrder) {
+                    genNumber++; stateNo = 1;
+                    genOrder = state.GeneratorOrder;
+                }
+                var stateName = TestSettings.GeneratorPrefixName + genNumber + ":" + "State" + stateNo;
+                if (!state.StateName.Equals(stateName)) {
+                    return false;
+                }
+                stateNo++;
+            }   
+            return true;
+        }
 
-        private static T MakeRequest<T>(string httpMethod, HttpClient client, string route, Dictionary<string, string> postParams = null)
+        private static async Task<T> MakeRequest<T>(string httpMethod, HttpClient client, string route, Dictionary<string, string> postParams = null)
         {
             HttpRequestMessage requestMessage = new HttpRequestMessage(new HttpMethod(httpMethod), $"{route}");
             
@@ -57,7 +83,7 @@ namespace vega.test.IntegrationTesting.TestHelpers
             if (postParams != null) {
                 requestMessage.Content = new StringContent(bodyJson,  Encoding.UTF8, "application/json");   // This is where your content gets added to the request body
             }
-            HttpResponseMessage response = client.SendAsync(requestMessage).Result;
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
 
             string apiResponse = response.Content.ReadAsStringAsync().Result;
             try
@@ -72,7 +98,7 @@ namespace vega.test.IntegrationTesting.TestHelpers
             }
             catch (Exception ex)
             {
-                throw new Exception($"An error ocurred while calling the API. It responded with the following message: {response.StatusCode} {response.ReasonPhrase}");
+            throw new Exception($"An error ocurred while calling the API. It responded with the following message: {response.StatusCode} {response.ReasonPhrase} {ex.Message}");
             }
         }
     }

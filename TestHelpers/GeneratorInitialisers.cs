@@ -10,21 +10,23 @@ namespace vegaplannerserver.test.TestHelpers
             PG.Name = name;
             return PG;
         }
-        public static StateInitialiser createGenerator(string name, int nOfStates) {
+        public static StateInitialiser createGenerator(string name, int nOfStates, int noOfDays, int alertDays) {
             var  GN = new StateInitialiser();
             GN.Name = name;
 
-            for(int i=0; i < nOfStates; i++)
-                GN.States.Add(createGeneratorState(i));
+            for(int i=1; i <= nOfStates; i++)
+                GN.States.Add(createGeneratorState(name, i, noOfDays, alertDays));
 
             return GN;
         }
-        public static StateInitialiserState createGeneratorState(int stateNo) {
+        public static StateInitialiserState createGeneratorState(string name, int stateNo,int noOfDays, int alertDays) {
 
 
             var  GNS = new StateInitialiserState();
-            GNS.Name = "State:" + stateNo;
+            GNS.Name = name + ":State" + stateNo;
             GNS.OrderId = stateNo;
+            GNS.CompletionTime = noOfDays;
+            GNS.AlertToCompletionTime = alertDays;
             return GNS;
         }
     }   

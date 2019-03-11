@@ -28,18 +28,17 @@ using Xunit;
 
 namespace vega.test.IntegrationTesting.PlanningAppTests
 {
-    public class CreateNewPlanningAppOneGeneratorTest :  IClassFixture<CreateNewPlanningAppOneGeneratorTest_WAF<vega.Startup>>
+    public class CreateNewPlanningAppOneGeneratorOneState :  IClassFixture<CreateNewPlanningAppOneGeneratorOneState_WAF<vega.Startup>>
     {
-        private readonly CreateNewPlanningAppOneGeneratorTest_WAF<vega.Startup> _factory;
-        public CreateNewPlanningAppOneGeneratorTest(CreateNewPlanningAppOneGeneratorTest_WAF<vega.Startup> factory)
+        private readonly CreateNewPlanningAppOneGeneratorOneState_WAF<vega.Startup> _factory;
+        public CreateNewPlanningAppOneGeneratorOneState(CreateNewPlanningAppOneGeneratorOneState_WAF<vega.Startup> factory)
         {
             _factory = factory;
         }
 
-        //[Fact (Skip = "specific reason")]
         [Theory]
         [InlineData(ApiPaths.PlanningApps)] 
-        public async Task Post_CreateNewPlanningAppOneGeneratorTest(string url)
+        public async Task Post_CreateNewPlanningAppOneGeneratorOneState(string url)
         {
             // Arrange
             var client = _factory.WithWebHostBuilder(builder =>
@@ -62,29 +61,28 @@ namespace vega.test.IntegrationTesting.PlanningAppTests
             var projectGenerators = await testWebClient.GetProjectGenerator();
             var pg = projectGenerators.Items.FirstOrDefault();
             var planningAppResource = await testWebClient.CreatePlanningApp(pg.Id);
+            
             Assert.Equal(planningAppResource.ProjectGeneratorName, TestSettings.ProjectGeneratorName);           
-            Assert.True(planningAppResource.PlanningAppStates.Count() == TestSettings.FiveStates); 
+            Assert.True(planningAppResource.PlanningAppStates.Count() == TestSettings.OneState); 
 
             //Check Ordering
             var stateList = planningAppResource.PlanningAppStates.ToList();
 
             //Check Planning App Details
-            Assert.Equal("15-01-2019", planningAppResource.CompletionDate );
+            Assert.Equal("03-01-2019", planningAppResource.CompletionDate );
             Assert.Equal("OnTime", planningAppResource.CurrentStateStatus );
             Assert.Equal("03-01-2019", stateList[0].DueByDate);
-            Assert.Equal("OnTime", stateList[0].StateStatus);
 
             //Loop states and check settings
-            Assert.True(testWebClient.checkListOrdering(stateList)); 
+            Assert.True(testWebClient.checkListOrdering(stateList));
 
             //Check new generator start flag
-            Assert.False(stateList[3].isLastGeneratorState);
-            Assert.True(stateList[4].isLastGeneratorState);
+            Assert.True(stateList[0].isLastGeneratorState);
         } 
     }
 
 
-    public class CreateNewPlanningAppOneGeneratorTest_WAF<TStartup> : WebApplicationFactory<vega.Startup>
+    public class CreateNewPlanningAppOneGeneratorOneState_WAF<TStartup> : WebApplicationFactory<vega.Startup>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -103,7 +101,7 @@ namespace vega.test.IntegrationTesting.PlanningAppTests
                 //service.InsertGenerator
                 var testData = new SetupDefaultTestData(db);
                 testData.CreateCustomer("TestUser1");
-                testData.CreateProjectGeneratorsStates(noOfGenerators:1, noOfStates:TestSettings.FiveStates);
+                testData.CreateProjectGeneratorsStates(noOfGenerators:1, noOfStates:TestSettings.OneState);
                 db.SaveChanges(); 
             }
         }
