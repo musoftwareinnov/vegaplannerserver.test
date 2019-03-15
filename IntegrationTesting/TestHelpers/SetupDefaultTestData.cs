@@ -63,11 +63,6 @@ namespace ChannelAllocator.Tests.IntegrationTesting.Helpers
         {
             var PG = GeneratorInitialisers.createProjectGenerator("Test Project Generator");
             var GN = GeneratorInitialisers.createGenerator("Test Gen 1", 5, NOOFDAYSDEF, ALERTNOOFDAYSDEF);
-
-            // var GS = GeneratorInitialisers.createGeneratorState(5, NOOFDAYSDEF, ALERTNOOFDAYSDEF);
-            // GN.States.Add(GS);
-            // GS = GeneratorInitialisers.createGeneratorState(3, NOOFDAYSDEF, ALERTNOOFDAYSDEF);
-            // GN.States.Add(GS);
             var PGNS = new ProjectGeneratorSequence();
             PGNS.SeqId=1;
             PGNS.Generator = GN;

@@ -14,6 +14,7 @@ namespace vegaplannerserver.test.IntegrationTesting.TestHelpers
         public const int FifteenStates = 15;
         public const int TwentyStates = 20;
         public const int FiftyStates = 50;
+        public const int Thousand = 1000;
     }
 
     public class  DateServiceTest : IDateService

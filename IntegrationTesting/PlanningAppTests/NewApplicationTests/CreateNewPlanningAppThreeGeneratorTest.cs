@@ -28,17 +28,17 @@ using Xunit;
 
 namespace vega.test.IntegrationTesting.PlanningAppTests
 {
-    public class CreateNewPlanningAppOneGeneratorOneState :  IClassFixture<CreateNewPlanningAppOneGeneratorOneState_WAF<vega.Startup>>
+    public class CreateNewPlanningAppThreeGeneratorTest :  IClassFixture<CreateNewPlanningAppThreeGeneratorTest_WAF<vega.Startup>>
     {
-        private readonly CreateNewPlanningAppOneGeneratorOneState_WAF<vega.Startup> _factory;
-        public CreateNewPlanningAppOneGeneratorOneState(CreateNewPlanningAppOneGeneratorOneState_WAF<vega.Startup> factory)
+        private readonly CreateNewPlanningAppThreeGeneratorTest_WAF<vega.Startup> _factory;
+        public CreateNewPlanningAppThreeGeneratorTest(CreateNewPlanningAppThreeGeneratorTest_WAF<vega.Startup> factory)
         {
             _factory = factory;
         }
 
         [Theory]
         [InlineData(ApiPaths.PlanningApps)] 
-        public async Task Post_CreateNewPlanningAppOneGeneratorOneState(string url)
+        public async Task Post_CreateNewPlanningAppThreeGeneratorTest(string url)
         {
             // Arrange
             var client = _factory.WithWebHostBuilder(builder =>
@@ -46,7 +46,7 @@ namespace vega.test.IntegrationTesting.PlanningAppTests
                 builder.ConfigureTestServices(services =>
                 {
                     //Override IService called during POST to return specific test calendar
-                    services.AddScoped<IDateService, DateServiceTest>(); 
+                    services.AddScoped<IDateService, DateServiceTest>();
                 });
             })
             .CreateClient();
@@ -61,28 +61,35 @@ namespace vega.test.IntegrationTesting.PlanningAppTests
             var projectGenerators = await testWebClient.GetProjectGenerator();
             var pg = projectGenerators.Items.FirstOrDefault();
             var planningAppResource = await testWebClient.CreatePlanningApp(pg.Id);
-            
             Assert.Equal(planningAppResource.ProjectGeneratorName, TestSettings.ProjectGeneratorName);           
-            Assert.True(planningAppResource.PlanningAppStates.Count() == TestSettings.OneState); 
+            Assert.True(planningAppResource.PlanningAppStates.Count() == TestSettings.FifteenStates); 
 
             //Check Ordering
             var stateList = planningAppResource.PlanningAppStates.ToList();
 
             //Check Planning App Details
-            Assert.Equal("03-01-2019", planningAppResource.CompletionDate );
+            Assert.Equal("12-02-2019", planningAppResource.CompletionDate );
             Assert.Equal("OnTime", planningAppResource.CurrentStateStatus );
             Assert.Equal("03-01-2019", stateList[0].DueByDate);
+            Assert.Equal("OnTime", stateList[0].StateStatus);
 
             //Loop states and check settings
-            Assert.True(testWebClient.checkListOrdering(stateList));
+            Assert.True(testWebClient.checkListOrdering(stateList)); 
 
             //Check new generator start flag
-            Assert.True(stateList[0].isLastGeneratorState);
+            Assert.False(stateList[3].isLastGeneratorState);
+            Assert.True(stateList[4].isLastGeneratorState);
+            Assert.False(stateList[8].isLastGeneratorState);
+            Assert.True(stateList[9].isLastGeneratorState);
+            Assert.False(stateList[13].isLastGeneratorState);
+            Assert.True(stateList[14].isLastGeneratorState);
+            Assert.Equal("12-02-2019", stateList[14].DueByDate);          
+            Assert.Equal("OnTime", stateList[14].StateStatus);          
         } 
     }
 
 
-    public class CreateNewPlanningAppOneGeneratorOneState_WAF<TStartup> : WebApplicationFactory<vega.Startup>
+    public class CreateNewPlanningAppThreeGeneratorTest_WAF<TStartup> : WebApplicationFactory<vega.Startup>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -101,7 +108,7 @@ namespace vega.test.IntegrationTesting.PlanningAppTests
                 //service.InsertGenerator
                 var testData = new SetupDefaultTestData(db);
                 testData.CreateCustomer("TestUser1");
-                testData.CreateProjectGeneratorsStates(noOfGenerators:1, noOfStates:TestSettings.OneState);
+                testData.CreateProjectGeneratorsStates(noOfGenerators:3, noOfStates:TestSettings.FiveStates);
                 db.SaveChanges(); 
             }
         }
