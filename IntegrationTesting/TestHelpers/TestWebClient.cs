@@ -7,8 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using vega.Controllers.Resources;
+using vega.Controllers.Resources.StateInitialser;
 using vega.Core.Models;
 using vega.Tests.IntegrationTesting.Helpers;
+using vegaplannerserver.Controllers.Resources;
 using vegaplannerserver.test.IntegrationTesting.TestHelpers;
 
 namespace vega.test.IntegrationTesting.TestHelpers
@@ -40,12 +42,55 @@ namespace vega.test.IntegrationTesting.TestHelpers
             throw new NotImplementedException();
         }
 
+        public async Task<BusinessDateResource> SetBusinessDate(string date) {   
+            var apiPath = ApiPaths.BusinessDates + '/' + date; 
+            var res = await MakeRequest<BusinessDateResource>("PUT", _client, apiPath, new Dictionary<string, string>());
+            return res;
+        }
+
         public async Task<QueryResultResource<PlanningAppSummaryResource>> GetPlanningApps() {    
             var res = await MakeRequest<QueryResultResource<PlanningAppSummaryResource>>("GET", _client, ApiPaths.PlanningApps, new Dictionary<string, string>());
             return res;
         }
+        public async Task<PlanningAppResource> GetPlanningApp(int id) {   
+            var apiPath = ApiPaths.PlanningApps + '/' + id.ToString(); 
+            var res = await MakeRequest<PlanningAppResource>("GET", _client, apiPath, new Dictionary<string, string>());
+            return res;
+        }
+        
+        public async Task<PlanningAppResource> NextState(int id) {   
+            var apiPath = ApiPaths.NextState +'/' + id.ToString(); 
+            var res = await MakeRequest<PlanningAppResource>("PUT", _client, apiPath, new Dictionary<string, string>());
+            return res;
+        }
         public async Task<QueryResultResource<ProjectGeneratorResource>> GetProjectGenerator() {    
             var res = await MakeRequest<QueryResultResource<ProjectGeneratorResource>>("GET", _client, ApiPaths.ProjectGenerators, new Dictionary<string, string>());
+            return res;
+        }
+        public async Task<QueryResultResource<StateInitialiserResource>> GetGenerators() {    
+            var res = await MakeRequest<QueryResultResource<StateInitialiserResource>>("GET", _client, ApiPaths.Generators, new Dictionary<string, string>());
+            return res;
+        }
+
+
+        public async Task<PlanningAppResource> AddGeneratorToPlanningApp(int AppId, int GenId, int OrderId) {  
+
+            var body = new Dictionary<string, string>();
+            body.Add("OrderId", OrderId.ToString());
+            body.Add("GeneratorId", GenId.ToString());
+
+            var apiPath = ApiPaths.AddGenerator + '/' + AppId.ToString();
+            var res = await MakeRequest<PlanningAppResource>("PUT", _client, apiPath, body);
+            return res;
+        }
+        public async Task<PlanningAppResource> RemoveGeneratorFromPlanningApp(int AppId, int GenId, int OrderId) {  
+
+            var body = new Dictionary<string, string>();
+            body.Add("OrderId", OrderId.ToString());
+            body.Add("GeneratorId", GenId.ToString());
+
+            var apiPath = ApiPaths.RemoveGenerator + '/' + AppId.ToString();
+            var res = await MakeRequest<PlanningAppResource>("PUT", _client, apiPath, body);
             return res;
         }
         public async Task<PlanningAppResource> CreatePlanningApp(int pgId) {  

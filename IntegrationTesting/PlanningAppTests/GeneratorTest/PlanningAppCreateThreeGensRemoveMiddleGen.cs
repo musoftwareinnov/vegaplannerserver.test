@@ -28,18 +28,17 @@
 
 // namespace vega.test.IntegrationTesting.PlanningAppTests
 // {
-//     public class CreateNewPlanningAppOneGeneratorTest :  IClassFixture<CreateNewPlanningAppOneGeneratorTest_WAF<vega.Startup>>
+//     public class PlanningAppCreateThreeGensRemoveMiddleGen :  IClassFixture<PlanningAppCreateThreeGensRemoveMiddleGen_WAF<vega.Startup>>
 //     {
-//         private readonly CreateNewPlanningAppOneGeneratorTest_WAF<vega.Startup> _factory;
-//         public CreateNewPlanningAppOneGeneratorTest(CreateNewPlanningAppOneGeneratorTest_WAF<vega.Startup> factory)
+//         private readonly PlanningAppCreateThreeGensRemoveMiddleGen_WAF<vega.Startup> _factory;
+//         public PlanningAppCreateThreeGensRemoveMiddleGen(PlanningAppCreateThreeGensRemoveMiddleGen_WAF<vega.Startup> factory)
 //         {
 //             _factory = factory;
 //         }
 
-//         //[Fact (Skip = "specific reason")]
 //         [Theory]
 //         [InlineData(ApiPaths.PlanningApps)] 
-//         public async Task Post_CreateNewPlanningAppOneGeneratorTest(string url)
+//         public async Task Post_PlanningAppCreateThreeGensRemoveMiddleGen(string url)
 //         {
 //             // Arrange
 //             var client = _factory.WithWebHostBuilder(builder =>
@@ -62,41 +61,40 @@
 //             var projectGenerators = await testWebClient.GetProjectGenerator();
 //             var pg = projectGenerators.Items.FirstOrDefault();
 //             var planningAppResource = await testWebClient.CreatePlanningApp(pg.Id);
+            
 //             Assert.Equal(planningAppResource.ProjectGeneratorName, TestSettings.ProjectGeneratorName);           
-//             Assert.True(planningAppResource.PlanningAppStates.Count() == TestSettings.FiveStates); 
+//             Assert.True(planningAppResource.PlanningAppStates.Count() == TestSettings.FifteenStates); 
 
 //             //Check Ordering
 //             var stateList = planningAppResource.PlanningAppStates.ToList();
 
 //             //Check Planning App Details
-//             Assert.Equal("15-01-2019", planningAppResource.CompletionDate );
+//             Assert.Equal("12-02-2019", planningAppResource.CompletionDate );
 //             Assert.Equal("OnTime", planningAppResource.CurrentStateStatus );
-//             Assert.Equal("03-01-2019", stateList[0].DueByDate);
-//             Assert.Equal("OnTime", stateList[0].StateStatus);
-//             Assert.True(stateList[0].CurrentState);
 
-//             Assert.Equal("07-01-2019", stateList[1].DueByDate);
-//             Assert.Equal("OnTime", stateList[1].StateStatus); 
 
-//             Assert.Equal("09-01-2019", stateList[2].DueByDate);
-//             Assert.Equal("OnTime", stateList[2].StateStatus); 
-
-//             Assert.Equal("11-01-2019", stateList[3].DueByDate);
-//             Assert.Equal("OnTime", stateList[3].StateStatus);   
-
-//             Assert.Equal("15-01-2019", stateList[4].DueByDate);
-//             Assert.Equal("OnTime", stateList[4].StateStatus);            
 //             //Loop states and check settings
-//             Assert.True(testWebClient.checkListOrdering(stateList)); 
+//             Assert.True(testWebClient.checkListOrdering(stateList));
 
-//             //Check new generator start flag
-//             Assert.False(stateList[3].isLastGeneratorState);
-//             Assert.True(stateList[4].isLastGeneratorState);
+//             //Remove Generator
+//             var Generators = await testWebClient.GetGenerators();
+//             var genToRemove = Generators.Items.Where(g => g.Name == "TestGen2").SingleOrDefault();
+
+//             await testWebClient.RemoveGeneratorFromPlanningApp(planningAppResource.Id, genToRemove.Id, OrderId:2);
+
+//             var PAR = await testWebClient.GetPlanningApp(planningAppResource.Id);
+
+//             Assert.True(PAR.PlanningAppStates.Count() == TestSettings.TenStates);
+//             stateList = PAR.PlanningAppStates.ToList();
+
+//             //Assert Completion date
+//             Assert.Equal("29-01-2019", PAR.CompletionDate );
+//             Assert.Equal("OnTime", PAR.CurrentStateStatus );
 //         } 
 //     }
 
 
-//     public class CreateNewPlanningAppOneGeneratorTest_WAF<TStartup> : WebApplicationFactory<vega.Startup>
+//     public class PlanningAppCreateThreeGensRemoveMiddleGen_WAF<TStartup> : WebApplicationFactory<vega.Startup>
 //     {
 //         protected override void ConfigureWebHost(IWebHostBuilder builder)
 //         {
@@ -111,11 +109,11 @@
 //             }
 //             override public void InitializeVegaPlannerServerDbForTests(VegaDbContext db)
 //             {      
-
 //                 //service.InsertGenerator
 //                 var testData = new SetupDefaultTestData(db);
 //                 testData.CreateCustomer("TestUser1");
-//                 testData.CreateProjectGeneratorsStates(noOfGenerators:1, noOfStates:TestSettings.FiveStates);
+//                 testData.CreateProjectGeneratorsStates(noOfGenerators:3, noOfStates:TestSettings.FiveStates);
+
 //                 db.SaveChanges(); 
 //             }
 //         }

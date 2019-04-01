@@ -28,17 +28,17 @@
 
 // namespace vega.test.IntegrationTesting.PlanningAppTests
 // {
-//     public class InsertGeneratorToPlanningAppFirst :  IClassFixture<InsertGeneratorToPlanningAppFirst_WAF<vega.Startup>>
+//     public class PlanningAppOneGeneratorAppendTwoNewGenerator :  IClassFixture<PlanningAppOneGeneratorAppendTwoNewGenerator_WAF<vega.Startup>>
 //     {
-//         private readonly InsertGeneratorToPlanningAppFirst_WAF<vega.Startup> _factory;
-//         public InsertGeneratorToPlanningAppFirst(InsertGeneratorToPlanningAppFirst_WAF<vega.Startup> factory)
+//         private readonly PlanningAppOneGeneratorAppendTwoNewGenerator_WAF<vega.Startup> _factory;
+//         public PlanningAppOneGeneratorAppendTwoNewGenerator(PlanningAppOneGeneratorAppendTwoNewGenerator_WAF<vega.Startup> factory)
 //         {
 //             _factory = factory;
 //         }
 
 //         [Theory]
 //         [InlineData(ApiPaths.PlanningApps)] 
-//         public async Task Post_InsertGeneratorToPlanningAppFirst(string url)
+//         public async Task Post_PlanningAppOneGeneratorAppendTwoNewGenerator(string url)
 //         {
 //             // Arrange
 //             var client = _factory.WithWebHostBuilder(builder =>
@@ -81,13 +81,43 @@
 //             Assert.Equal("OnTime", stateList[0].StateStatus);
 //             Assert.True(stateList[0].CurrentState);
 
-//             //Insert New Generator
+//             //Add A new generator to the end and check states
+//             var Generators = await testWebClient.GetGenerators();
+//             var genToAdd = Generators.Items.Where(g => g.Name == "Append Generator End").SingleOrDefault();
 
+//             await testWebClient.AddGeneratorToPlanningApp(planningAppResource.Id, genToAdd.Id, OrderId:2);
+
+//             var PAR = await testWebClient.GetPlanningApp(planningAppResource.Id);
+//             stateList = PAR.PlanningAppStates.ToList();
+
+//             //Assert Completion date updated to reflect new generator
+//             Assert.Equal("07-01-2019", PAR.CompletionDate );
+//             Assert.Equal("OnTime", PAR.CurrentStateStatus );
+
+//             Assert.True(stateList[0].isLastGeneratorState);
+//             Assert.Equal("OnTime", stateList[0].StateStatus);
+//             Assert.Equal("03-01-2019", stateList[0].DueByDate);
+//             Assert.True(stateList[0].CurrentState);    
+//             Assert.True(stateList[1].isLastGeneratorState);
+//             Assert.Equal("OnTime", stateList[1].StateStatus);
+//             Assert.Equal("07-01-2019", stateList[1].DueByDate);
+//             Assert.False(stateList[1].CurrentState);             
+
+//             await testWebClient.AddGeneratorToPlanningApp(planningAppResource.Id, genToAdd.Id, OrderId:3);
+//             PAR = await testWebClient.GetPlanningApp(planningAppResource.Id);
+//             stateList = PAR.PlanningAppStates.ToList();
+//             Assert.Equal("09-01-2019", PAR.CompletionDate );
+//             Assert.Equal("OnTime", PAR.CurrentStateStatus );
+
+//             Assert.True(stateList[2].isLastGeneratorState);
+//             Assert.Equal("OnTime", stateList[2].StateStatus);
+//             Assert.Equal("09-01-2019", stateList[2].DueByDate);
+//             Assert.False(stateList[2].CurrentState);
 //         } 
 //     }
 
 
-//     public class InsertGeneratorToPlanningAppFirst_WAF<TStartup> : WebApplicationFactory<vega.Startup>
+//     public class PlanningAppOneGeneratorAppendTwoNewGenerator_WAF<TStartup> : WebApplicationFactory<vega.Startup>
 //     {
 //         protected override void ConfigureWebHost(IWebHostBuilder builder)
 //         {
@@ -107,9 +137,9 @@
 //                 testData.CreateCustomer("TestUser1");
 //                 testData.CreateProjectGeneratorsStates(noOfGenerators:1, noOfStates:TestSettings.OneState);
 
-//                 //Create Generator To Add
-//                 var genToInsert = GeneratorInitialisers.createGenerator("Inserted Generator", 2, 2, 2);
-//                 db.Add(genToInsert);
+//                 //Generator to be inserted
+//                 var GN = GeneratorInitialisers.createGenerator("Append Generator End", nOfStates:1, noOfDays:2, alertDays:1);
+//                 db.Add(GN);
 //                 db.SaveChanges(); 
 //             }
 //         }
